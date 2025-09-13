@@ -14,6 +14,7 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
   Optional<User> findByNickname(String nickname); // 닉네임으로 유저 검색
   Optional<User> findByUserLoginId(String userLoginId);
+  Optional<User> findByEmail(String email);
 
   @Query("SELECT new com.goorm.jido.dto.UserSearchResult(u.userId, u.nickname) " +
           "FROM User u WHERE u.nickname LIKE %:query%")
