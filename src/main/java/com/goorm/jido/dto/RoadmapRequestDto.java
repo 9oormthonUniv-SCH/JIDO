@@ -19,12 +19,12 @@ public record RoadmapRequestDto(
         @NotBlank(message = "category is required")
         String category,
 
-        // ✅ 선택: 초기 섹션 제목들(없어도 됨)
+        // 선택: 초기 섹션 제목들(없어도 됨)
         List<String> sections,
 
         // 생략 시 엔티티 기본값(true) 사용
         Boolean isPublic,
 
-        // ✅ 로그인 없을 때만 사용하는 선택 필드 (프론트 테스트용)
+        // 로그인 없을 때만 사용하는 선택 필드 (프론트 테스트용)
         Long authorId
 ) {}
