@@ -15,7 +15,7 @@ public interface RoadmapRepository extends JpaRepository<Roadmap, Long> {
     List<Roadmap> findByIsPublicTrue();  // 공개 로드맵만 조회
     Optional<Roadmap> findByRoadmapIdAndAuthor_UserId(Long roadmapId, Long userId);
 
-    @Query("SELECT new com.goorm.jido.dto.RoadmapSearchResult(r.roadmapId, r.title) " +
+    @Query("SELECT new com.goorm.jido.dto.RoadmapSearchResult(r.roadmapId, r.title, r.category) " +
             "FROM Roadmap r WHERE LOWER(r.title) LIKE LOWER(:query)")
     List<RoadmapSearchResult> searchByTitleOrInitial(@Param("query") String query);
 
