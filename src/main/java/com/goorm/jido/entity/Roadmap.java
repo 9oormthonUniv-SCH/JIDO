@@ -73,15 +73,25 @@ public class Roadmap {
         if (isPublic != null) this.isPublic = isPublic;
     }
 
-    /** 섹션 전체 교체: 기존 섹션 제거(orphanRemoval) 후 새 섹션으로 대체 */
+    /** ✅ 섹션 전체 교체: 외부(Service)에서 전달받은 섹션 엔티티 리스트를 적용 */
+    public void setRoadmapSections(List<RoadmapSection> newSections) {
+        this.roadmapSections.clear(); // orphanRemoval=true → DB에서도 삭제됨
+        if (newSections == null) return;
+        for (RoadmapSection section : newSections) {
+            section.assignRoadmap(this); // RoadmapSection과 연관관계 주입
+            this.roadmapSections.add(section);
+        }
+    }
+
+    /** 섹션 전체 교체 (기존 방식: RoadmapSection 직접 사용) */
     public void replaceSections(List<RoadmapSection> newSections) {
-        this.roadmapSections.clear(); // orphanRemoval=true 덕분에 DB에서도 삭제됨
+        this.roadmapSections.clear();
         if (newSections == null) return;
 
         long order = 1L;
         for (RoadmapSection s : newSections) {
             RoadmapSection attached = RoadmapSection.builder()
-                    .roadmap(this) // ✅ setter 없이 연관관계 주입
+                    .roadmap(this)
                     .title(s.getTitle())
                     .sectionNum(s.getSectionNum() != null ? s.getSectionNum() : order)
                     .build();
@@ -90,24 +100,20 @@ public class Roadmap {
         }
     }
 
-    /** 섹션 단건 추가(순서가 필요하면 여기서 부여) */
+    /** 섹션 단건 추가 */
     public void addSection(RoadmapSection section) {
-        // ✅ setter 금지: 전달받은 값을 복사해 연관관계 주입
-        RoadmapSection copy = RoadmapSection.builder()
-                .roadmap(this)
-                .title(section.getTitle())
-                .sectionNum(section.getSectionNum())
-                .build();
-        this.roadmapSections.add(copy);
+        if (section == null) return;
+        section.assignRoadmap(this);
+        this.roadmapSections.add(section);
     }
 
-    /** 섹션 전체 비우기 (필요 시 사용) */
+    /** 섹션 전체 비우기 */
     public void clearSections() {
         this.roadmapSections.clear();
     }
 
-    /** (선택) 섹션 제목 리스트로 통째 교체 */
-    public void replaceSectionsByTitles(List<String> titles){
+    /** (레거시) 섹션 제목 리스트로 통째 교체 */
+    public void replaceSectionsByTitles(List<String> titles) {
         this.roadmapSections.clear();
         if (titles == null) return;
         long order = 1L;
@@ -120,22 +126,4 @@ public class Roadmap {
             this.roadmapSections.add(s);
         }
     }
-
-    /** (참고) DTO → 엔티티 매핑함수로 섹션 교체하고 싶을 때 (예시)
-     *
-     *  public void replaceSectionsFromDtos(List<SectionDto> dtos, Function<SectionDto, RoadmapSection> mapper) {
-     *      this.roadmapSections.clear();
-     *      if (dtos == null) return;
-     *      long order = 1L;
-     *      for (SectionDto d : dtos) {
-     *          RoadmapSection s = mapper.apply(d);
-     *          RoadmapSection attached = RoadmapSection.builder()
-     *                  .roadmap(this)
-     *                  .title(s.getTitle())
-     *                  .sectionNum(s.getSectionNum() != null ? s.getSectionNum() : order++)
-     *                  .build();
-     *          this.roadmapSections.add(attached);
-     *      }
-     *  }
-     */
 }

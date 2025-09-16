@@ -1,10 +1,7 @@
 package com.goorm.jido.service;
 
 import com.goorm.jido.dto.*;
-import com.goorm.jido.entity.Roadmap;
-import com.goorm.jido.entity.Step;
-import com.goorm.jido.entity.StepContent;
-import com.goorm.jido.entity.User;
+import com.goorm.jido.entity.*;
 import com.goorm.jido.repository.RoadmapRepository;
 import com.goorm.jido.repository.StepContentRepository;
 import com.goorm.jido.repository.StepRepository;
@@ -62,20 +59,21 @@ public class RoadmapService {
                 .updatedAt(now)
                 .build();
 
-        // ✅ sections가 온 경우에만 초기 섹션 생성 (공백/빈 값 제거)
+        // sections DTO → 엔티티로 변환하면서 roadmap 주입
         if (dto.sections() != null && !dto.sections().isEmpty()) {
-            var clean = dto.sections().stream()
-                    .map(s -> s == null ? null : s.trim())
-                    .filter(s -> s != null && !s.isEmpty())
-                    .toList();
-            if (!clean.isEmpty()) {
-                roadmap.replaceSectionsByTitles(clean); // 연관 세팅 + cascade로 저장
+            List<RoadmapSection> sectionEntities = new ArrayList<>();
+            for (int i = 0; i < dto.sections().size(); i++) {
+                SectionRequestDto sectionDto = dto.sections().get(i);
+                RoadmapSection section = RoadmapSection.fromDto(sectionDto, roadmap, (long) (i + 1));
+                sectionEntities.add(section);
             }
+            roadmap.setRoadmapSections(sectionEntities);
         }
 
         Roadmap saved = roadmapRepository.save(roadmap);
         return RoadmapResponseDto.from(saved, 0L, false, 0L, false);
     }
+
 
     // 특정 로드맵 조회(라이트)
     @Transactional(readOnly = true)
