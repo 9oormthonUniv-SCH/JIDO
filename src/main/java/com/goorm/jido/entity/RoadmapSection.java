@@ -2,6 +2,7 @@ package com.goorm.jido.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.goorm.jido.dto.SectionRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
@@ -24,10 +25,10 @@ public class RoadmapSection {
     @Column(name = "section_id")
     private Long sectionId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "roadmap_id", nullable = false)
-    @JsonIgnore                                  // 역참조 직렬화 방지
-    @OnDelete(action = OnDeleteAction.CASCADE)   // 부모 로드맵 삭제 시 DB 레벨에서 섹션도 제거
+    @JsonIgnore                                  // ✅ 직렬화 무한 루프 방지
+    @OnDelete(action = OnDeleteAction.CASCADE)   // ✅ 부모 삭제 시 DB 레벨에서 함께 삭제
     private Roadmap roadmap;
 
     @Column(name = "title", nullable = false)
@@ -42,25 +43,33 @@ public class RoadmapSection {
     private List<Step> steps = new ArrayList<>();
 
     // ====== 편의 메서드 ======
-    // Roadmap.addSection(...) 등 기존 코드 호환용 (package-private로 유지: 외부 API 아님)
-    void setRoadmap(Roadmap roadmap) {           // 기존 호출 지점을 살리기 위함 (실제 '세터' 용도 아님)
+    public void assignRoadmap(Roadmap roadmap) {     // 🚀 Service 계층에서 연관 주입용
         this.roadmap = roadmap;
     }
 
     public void addStep(Step step) {
         if (step == null) return;
-        step.assignSection(this);                // 세터 없이 연관 주입
+        step.assignSection(this);
         this.steps.add(step);
     }
 
     public void removeStep(Step step) {
         if (step == null) return;
-        this.steps.remove(step);                 // orphanRemoval=true → DB에서도 삭제
+        this.steps.remove(step);
         step.clearSection();
     }
 
     public void update(String title, Long sectionNum) {
         if (title != null && !title.isBlank()) this.title = title;
         if (sectionNum != null) this.sectionNum = sectionNum;
+    }
+
+    // ====== DTO 변환 메서드 ======
+    public static RoadmapSection fromDto(SectionRequestDto dto, Roadmap roadmap, Long sectionNum) {
+        return RoadmapSection.builder()
+                .title(dto.getTitle())
+                .sectionNum(sectionNum)   // 🚀 순서 번호 Service에서 매겨줄 수 있음
+                .roadmap(roadmap)
+                .build();
     }
 }
