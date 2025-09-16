@@ -12,7 +12,6 @@ import java.util.Optional;
 public interface RoadmapRepository extends JpaRepository<Roadmap, Long> {
 
     List<Roadmap> findByAuthor_UserId(Long authorId);
-    List<Roadmap> findByCategory(String category);
     List<Roadmap> findByIsPublicTrue();  // 공개 로드맵만 조회
     Optional<Roadmap> findByRoadmapIdAndAuthor_UserId(Long roadmapId, Long userId);
 
@@ -29,4 +28,7 @@ public interface RoadmapRepository extends JpaRepository<Roadmap, Long> {
            WHERE r.roadmapId = :id
            """)
     Optional<Roadmap> findByIdWithSections(@Param("id") Long id);
+
+    @Query("SELECT r FROM Roadmap r WHERE r.category = :categoryId OR r.category LIKE CONCAT(:categoryId, '.%')")
+    List<Roadmap> findByCategoryOrSubCategory(@Param("categoryId") String categoryId);
 }

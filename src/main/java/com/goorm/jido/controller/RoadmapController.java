@@ -52,6 +52,7 @@ public class RoadmapController {
                 .orElseThrow(() -> new IllegalArgumentException("로드맵을 찾을 수 없습니다."));
     }
 
+
     // 전체 로드맵 조회
     @GetMapping
     public List<RoadmapResponseDto> getAll(
@@ -59,6 +60,16 @@ public class RoadmapController {
     ) {
         Long userId = userDetails != null ? userDetails.getUserId() : null;
         return roadmapService.getAllRoadmaps(userId);
+    }
+
+    // 카테고리별 로드맵 조회
+    @GetMapping(params = "category")
+    public List<RoadmapResponseDto> getRoadmapsByCategory (
+            @RequestParam String category,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ){
+        Long userId = userDetails != null ? userDetails.getUserId() : null;
+        return roadmapService.getRoadmapsByCategory(category, userId);
     }
 
     // 로드맵 삭제
@@ -91,4 +102,6 @@ public class RoadmapController {
         log.info("GET /api/roadmaps/{}/detail userId={}", id, userId);
         return roadmapService.getRoadmapDetail(id, userId);
     }
+
+
 }

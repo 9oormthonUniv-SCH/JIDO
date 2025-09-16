@@ -88,6 +88,19 @@ public class RoadmapService {
                 ));
     }
 
+    @Transactional(readOnly = true)
+    public List<RoadmapResponseDto> getRoadmapsByCategory(String categoryId, Long userId) {
+        return roadmapRepository.findByCategoryOrSubCategory(categoryId).stream()
+                .map(r -> RoadmapResponseDto.from(
+                        r,
+                        roadmapLikeService.countLikes(r.getRoadmapId()),
+                        roadmapLikeService.isLiked(userId, r.getRoadmapId()),
+                        roadmapBookmarkService.countBookmarks(r.getRoadmapId()),
+                        roadmapBookmarkService.isBookmarked(userId, r.getRoadmapId())
+                ))
+                .toList();
+    }
+
     // 전체 로드맵 조회(라이트)
     @Transactional(readOnly = true)
     public List<RoadmapResponseDto> getAllRoadmaps(Long userId) {
