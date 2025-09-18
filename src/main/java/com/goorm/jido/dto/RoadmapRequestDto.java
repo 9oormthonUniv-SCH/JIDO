@@ -2,6 +2,7 @@ package com.goorm.jido.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import java.util.List;
+import jakarta.validation.Valid;
 
 /**
  * 로드맵 생성 요청 DTO
@@ -10,21 +11,13 @@ import java.util.List;
  * - authorId: 비로그인 테스트용(로그인 시 미사용)
  */
 public record RoadmapRequestDto(
-        @NotBlank(message = "title is required")
-        String title,
-
-        @NotBlank(message = "description is required")
-        String description,
-
-        @NotBlank(message = "category is required")
-        String category,
-
-        // 생략 시 엔티티 기본값(true) 사용
-        Boolean isPublic,
-
-        // 로그인 없을 때만 사용하는 선택 필드 (프론트 테스트용)
         Long authorId,
-
-        List<SectionRequestDto> sections
-
+        @NotBlank(message = "title must not be blank")
+        String title,
+        @NotBlank(message = "description must not be blank")
+        String description,
+        @NotBlank(message = "category must not be blank")
+        String category,
+        Boolean isPublic,
+        List<@Valid SectionRequestDto> sections
 ) {}

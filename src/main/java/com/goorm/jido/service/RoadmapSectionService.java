@@ -43,7 +43,7 @@ public class RoadmapSectionService {
                 .findBySectionIdAndRoadmap_Author_UserId(sectionId, userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "섹션이 없거나 권한이 없습니다."));
 
-        section.update(dto.title(), dto.sectionNum()); // 엔티티 도메인 메서드(세터 없이)
+        section.update(dto.title(), dto.description(), dto.sectionNum()); // 엔티티 도메인 메서드(세터 없이)
         return section; // Dirty checking으로 반영
     }
 }

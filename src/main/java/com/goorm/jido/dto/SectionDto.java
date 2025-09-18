@@ -8,6 +8,7 @@ import java.util.List;
 public record SectionDto(
         Long sectionId,
         String title,
+        String description,
         Long sectionNum,
         List<StepDto> steps
 ) {
@@ -15,10 +16,10 @@ public record SectionDto(
         return new SectionDto(
                 s.getSectionId(),
                 s.getTitle(),
+                s.getDescription(),
                 s.getSectionNum(),
-                steps == null ? List.of() : steps.stream()
-                        .sorted(Comparator.comparing(StepDto::stepNumber))
-                        .toList()
+                steps
         );
     }
 }
+
