@@ -51,8 +51,9 @@ public class UserInterestController {
   )
   @PostMapping("/{categoryId}")
   public void addInterest(@AuthenticationPrincipal CustomUserDetails user, @PathVariable String categoryId) {
+
     Category category = categoryRepository.findByCategoryId(categoryId).orElse(null);
 
-    userInterestService.addInterest(user.getUser(), category);
+    userInterestService.addInterest(user.getUserId(), category);
   }
 }
