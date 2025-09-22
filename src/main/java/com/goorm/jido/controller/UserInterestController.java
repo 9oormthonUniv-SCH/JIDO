@@ -1,6 +1,7 @@
 package com.goorm.jido.controller;
 
 
+import com.goorm.jido.config.CustomUserDetails;
 import com.goorm.jido.entity.Category;
 import com.goorm.jido.entity.User;
 import com.goorm.jido.entity.userInterest.UserInterest;
@@ -10,6 +11,7 @@ import com.goorm.jido.service.UserInterestService;
 import com.goorm.jido.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,13 +38,21 @@ public class UserInterestController {
   @Operation(
           description = "사용자의 특정 관심사를 삭제합니다."
   )
-  @DeleteMapping("/{userId}/{categoryId}")
-  public void deleteInterest(@PathVariable Long userId, @PathVariable String categoryId) {
-    User user = userService.findById(userId);
+  @DeleteMapping("/{categoryId}")
+  public void deleteInterest(@AuthenticationPrincipal CustomUserDetails user, @PathVariable String categoryId) {
     Category category = categoryRepository.findByCategoryId(categoryId).orElse(null);
 
-    userInterestService.removeInterest(user, category);
+    userInterestService.removeInterest(user.getUser(), category);
   }
 
+  // ADD (특정 유저 관심사 추가)
+  @Operation(
+          description = "사용자의 특정 관심사를 추가합니다."
+  )
+  @PostMapping("/{categoryId}")
+  public void addInterest(@AuthenticationPrincipal CustomUserDetails user, @PathVariable String categoryId) {
+    Category category = categoryRepository.findByCategoryId(categoryId).orElse(null);
 
+    userInterestService.addInterest(user.getUser(), category);
+  }
 }

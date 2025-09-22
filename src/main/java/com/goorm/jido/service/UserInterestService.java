@@ -22,7 +22,7 @@ public class UserInterestService {
     return userInterestRepository.findByUser_UserId(userId);
   }
 
-  // UPDATE
+  // CREATE - 사용자 관심사 추가
   public UserInterest addInterest(User user, Category category) {
     UserInterest userInterest = UserInterest.builder()
             .user(user)
