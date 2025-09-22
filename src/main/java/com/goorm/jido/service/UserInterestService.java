@@ -22,7 +22,11 @@ public class UserInterestService {
 
   // READ - 특정 유저 관심사 조회
   public List<UserInterest> getInterestsByUser(Long userId) {
-    return userInterestRepository.findByUser_UserId(userId);
+
+//    return userInterestRepository.findByUser_UserId(userId);
+    List<UserInterest> li = userInterestRepository.findByUser_UserId(userId);
+    li.stream().map(ul -> ul.getCategory());
+    return li;
   }
 
   // CREATE - 사용자 관심사 추가
