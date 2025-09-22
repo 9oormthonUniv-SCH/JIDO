@@ -13,6 +13,11 @@ public class UserInterestId implements Serializable {
 
   public UserInterestId(){}
 
+  public UserInterestId(User user, Category category) {
+    this.user = user;
+    this.category = category;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;

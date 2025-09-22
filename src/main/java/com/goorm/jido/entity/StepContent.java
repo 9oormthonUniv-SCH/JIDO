@@ -2,6 +2,7 @@ package com.goorm.jido.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.goorm.jido.dto.StepContentRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -46,8 +47,19 @@ public class StepContent {
     @Column(name = "finished", nullable = false)
     private Boolean finished = false;
 
+    void assignStep(Step step) {
+        this.step = step;
+    }
+
     public void update(String content, Boolean finished) {
         if (content != null) this.content = content;
         if (finished != null) this.finished = finished;
     }
+    public static StepContent fromDto(StepContentRequestDto dto, Step step) {
+        return StepContent.builder()
+                .content(dto.value())
+                .step(step)
+                .build();
+    }
+
 }

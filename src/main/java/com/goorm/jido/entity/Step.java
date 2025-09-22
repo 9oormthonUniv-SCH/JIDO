@@ -2,6 +2,8 @@ package com.goorm.jido.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.goorm.jido.dto.StepContentRequestDto;
+import com.goorm.jido.dto.StepRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -60,8 +62,33 @@ public class Step {
         this.roadmapSection = null;
     }
 
+    public void addContent(StepContent content) {
+        if (content == null) return;
+        content.assignStep(this); // StepContent에 assignStep 메서드도 필요
+        this.stepContents.add(content);
+    }
+
     public void update(String title, Long stepNumber) {
         if (title != null && !title.isBlank()) this.title = title;
         if (stepNumber != null) this.stepNumber = stepNumber;
     }
+
+    public static Step fromDto(StepRequestDto dto, RoadmapSection section, Long stepNum) {
+        Step step = Step.builder()
+                .title(dto.title())
+                .stepNumber(stepNum)
+                .roadmapSection(section)
+                .build();
+
+        // StepContentRequestDto → StepContent 변환
+        if (dto.contents() != null) {
+            for (StepContentRequestDto contentDto : dto.contents()) {
+                StepContent content = StepContent.fromDto(contentDto, step);
+                step.addContent(content);
+            }
+        }
+
+        return step;
+    }
+
 }

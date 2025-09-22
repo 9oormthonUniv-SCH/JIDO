@@ -102,14 +102,18 @@ public class Roadmap {
 
     /** 섹션 단건 추가 */
     public void addSection(RoadmapSection section) {
-        if (section == null) return;
-        section.assignRoadmap(this);
+        if (this.roadmapSections == null) {
+            this.roadmapSections = new ArrayList<>();
+        }
+        section.assignRoadmap(this); // 양방향 주입
         this.roadmapSections.add(section);
     }
 
     /** 섹션 전체 비우기 */
     public void clearSections() {
-        this.roadmapSections.clear();
+        if (this.roadmapSections != null) {
+            this.roadmapSections.clear();
+        }
     }
 
     /** (레거시) 섹션 제목 리스트로 통째 교체 */

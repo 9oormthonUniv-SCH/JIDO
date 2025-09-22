@@ -13,7 +13,5 @@ public record RoadmapUpdateRequestDto(
         String category,
         Boolean isPublic,
 
-        // 섹션을 통째로 교체하고 싶을 때만 보냄
-        @Valid
-        List<@jakarta.validation.constraints.NotBlank(message = "section title must not be blank") String> sections
+        List<@Valid SectionRequestDto> sections
 ) {}

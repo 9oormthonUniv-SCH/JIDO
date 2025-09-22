@@ -1,12 +1,10 @@
 package com.goorm.jido.dto;
 
-import lombok.*;
+import jakarta.validation.constraints.NotBlank;
+import java.util.List;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class SectionRequestDto {
-    private String title;
-    private String description;
-}
+public record SectionRequestDto(
+        @NotBlank(message = "section title must not be blank") String title,
+        String description,
+        List<StepRequestDto> steps
+) {}

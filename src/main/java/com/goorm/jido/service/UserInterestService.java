@@ -1,0 +1,43 @@
+package com.goorm.jido.service;
+
+import com.goorm.jido.entity.Category;
+import com.goorm.jido.entity.User;
+import com.goorm.jido.entity.userInterest.UserInterest;
+import com.goorm.jido.entity.userInterest.UserInterestId;
+import com.goorm.jido.repository.UserInterestRepository;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class UserInterestService {
+
+  private final UserInterestRepository userInterestRepository;
+
+  // READ - 특정 유저 관심사 조회
+  public List<UserInterest> getInterestsByUser(Long userId) {
+    return userInterestRepository.findByUser_UserId(userId);
+  }
+
+  // UPDATE
+  public UserInterest addInterest(User user, Category category) {
+    UserInterest userInterest = UserInterest.builder()
+            .user(user)
+            .category(category)
+            .build();
+    return userInterestRepository.save(userInterest);
+  }
+
+  // DELETE
+  public void removeInterest(User user, Category category) {
+    UserInterestId id = new UserInterestId(user, category);
+
+    if (!userInterestRepository.existsById(id)) {
+      throw new EntityNotFoundException("해당 관심사가 존재하지 않습니다.");
+    }
+    userInterestRepository.deleteById(id);
+  }
+}

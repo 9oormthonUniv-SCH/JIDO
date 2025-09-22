@@ -37,6 +37,11 @@ public class UserService {
             .orElseThrow(() -> new IllegalArgumentException());
   }
 
+  public User findByEmail(String email) {
+    return userRepository.findByEmail(email)
+            .orElseThrow(() -> new IllegalArgumentException());
+  }
+
 
   public Long save(SignupRequestDto dto) {
     // 1. 유저 정보 저장

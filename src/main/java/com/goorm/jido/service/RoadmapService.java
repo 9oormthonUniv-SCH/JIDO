@@ -59,21 +59,22 @@ public class RoadmapService {
                 .updatedAt(now)
                 .build();
 
-        // sections DTO → 엔티티로 변환하면서 roadmap 주입
+        // sections DTO → 엔티티로 변환하면서 title + description + roadmap 주입
         if (dto.sections() != null && !dto.sections().isEmpty()) {
             List<RoadmapSection> sectionEntities = new ArrayList<>();
             for (int i = 0; i < dto.sections().size(); i++) {
                 SectionRequestDto sectionDto = dto.sections().get(i);
+                if (sectionDto == null || sectionDto.title() == null || sectionDto.title().isBlank()) {
+                    continue;
+                }
                 RoadmapSection section = RoadmapSection.fromDto(sectionDto, roadmap, (long) (i + 1));
                 sectionEntities.add(section);
             }
             roadmap.setRoadmapSections(sectionEntities);
         }
-
         Roadmap saved = roadmapRepository.save(roadmap);
         return RoadmapResponseDto.from(saved, 0L, false, 0L, false);
     }
-
 
     // 특정 로드맵 조회(라이트)
     @Transactional(readOnly = true)
@@ -120,25 +121,31 @@ public class RoadmapService {
     public void deleteRoadmap(Long id) {
         var roadmap = roadmapRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "로드맵을 찾을 수 없습니다."));
-        roadmapRepository.delete(roadmap); // ← deleteById(id) 대신 이거! (선택이지만 추천)
+        roadmapRepository.delete(roadmap);
     }
 
     // 로드맵 수정
     @Transactional
     public RoadmapResponseDto updateRoadmap(Long id, Long userId, RoadmapUpdateRequestDto dto) {
+        // 1. 권한 체크 + 로드맵 조회
         Roadmap roadmap = roadmapRepository.findByRoadmapIdAndAuthor_UserId(id, userId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "로드맵이 없거나 권한이 없습니다."));
 
+        // 2. 로드맵 기본 정보 업데이트
         roadmap.updateBasicInfo(dto.title(), dto.description(), dto.category(), dto.isPublic());
 
-        // 섹션 교체 요청이 왔을 때만 반영(공백/빈 값 삭제)
+        // 3. 섹션 전체 교체 (DTO → 엔티티 변환)
         if (dto.sections() != null) {
-            var clean = dto.sections().stream()
-                    .map(s -> s == null ? null : s.trim())
-                    .filter(s -> s != null && !s.isEmpty())
-                    .toList();
-            roadmap.replaceSectionsByTitles(clean);
+            // 기존 섹션 다 제거
+            roadmap.clearSections();
+
+            // 새로운 섹션들 추가
+            for (int i = 0; i < dto.sections().size(); i++) {
+                SectionRequestDto sectionDto = dto.sections().get(i);
+                RoadmapSection newSection = RoadmapSection.fromDto(sectionDto, roadmap, (long) (i + 1));
+                roadmap.addSection(newSection);
+            }
         }
 
         return RoadmapResponseDto.from(roadmap,
@@ -147,6 +154,7 @@ public class RoadmapService {
                 roadmapBookmarkService.countBookmarks(roadmap.getRoadmapId()),
                 roadmapBookmarkService.isBookmarked(userId, roadmap.getRoadmapId()));
     }
+
 
     // 상세(트리) 조회: 로드맵 + 섹션 + 스텝 + 콘텐츠
     @Transactional(readOnly = true)
@@ -159,32 +167,27 @@ public class RoadmapService {
             return RoadmapDetailResponseDto.from(roadmap, List.of());
         }
 
-        // 섹션들 → 스텝 일괄 조회
-        var sectionIds = sections.stream().map(s -> s.getSectionId()).toList();
+        var sectionIds = sections.stream().map(RoadmapSection::getSectionId).toList();
         var steps = stepRepository.findBySectionIds(sectionIds);
 
-        // 스텝들 → 콘텐츠 일괄 조회
         var stepIds = steps.stream().map(Step::getStepId).toList();
         var contents = stepIds.isEmpty() ? List.<StepContent>of()
                 : stepContentRepository.findByStepIds(stepIds);
 
-        // 콘텐츠를 stepId별로 그룹화
         Map<Long, List<StepContentDto>> contentsByStepId = contents.stream()
                 .collect(Collectors.groupingBy(
                         c -> c.getStep().getStepId(),
                         Collectors.mapping(StepContentDto::from, Collectors.toList())
                 ));
 
-        // 스텝을 sectionId별로 그룹화
         Map<Long, List<StepDto>> stepsBySectionId = new HashMap<>();
         for (var s : steps) {
             var list = stepsBySectionId.computeIfAbsent(s.getRoadmapSection().getSectionId(), k -> new ArrayList<>());
             list.add(StepDto.of(s, contentsByStepId.getOrDefault(s.getStepId(), List.of())));
         }
 
-        // 섹션 DTO 조립(섹션 순서 정렬)
         var sectionDtos = sections.stream()
-                .sorted(Comparator.comparing(com.goorm.jido.entity.RoadmapSection::getSectionNum))
+                .sorted(Comparator.comparing(RoadmapSection::getSectionNum))
                 .map(sec -> SectionDto.of(sec, stepsBySectionId.getOrDefault(sec.getSectionId(), List.of())))
                 .toList();
 
