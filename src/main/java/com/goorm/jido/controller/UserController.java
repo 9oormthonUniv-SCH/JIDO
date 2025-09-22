@@ -31,13 +31,11 @@ public class UserController {
   private final AuthenticationManager authenticationManager;
 
   // 사용자 정보 수정
-  @PatchMapping("/user/id/{id}")
+  @PatchMapping("/user/{id}")
   public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody UserPatchRequestDto dto) {
     return ResponseEntity.status(HttpStatus.OK)
             .body(userService.patchUser(id, dto));
   }
-
-
 
   // 닉네임으로 유저 검색
   @GetMapping("/user/nick/{nickname}")
@@ -86,6 +84,25 @@ public class UserController {
       return ResponseEntity.notFound().build();
     }
   }
+
+  // 이메일로 유저 검색
+  @GetMapping("/user/email/{email}")
+  @Operation(
+          description = "사용자의 이메일으로 유저 정보를 검색합니다."
+  )
+  public ResponseEntity<UserResponseDto> findByEmail(@PathVariable String email) {
+    try{
+      User user = userService.findByEmail(email);
+
+      return ResponseEntity.status(HttpStatus.OK)
+              .body(UserResponseDto.from(user));
+
+    }catch (IllegalArgumentException e){
+      return ResponseEntity.notFound().build();
+    }
+  }
+
+
 
   // 회원 가입
   @PostMapping("/user")
