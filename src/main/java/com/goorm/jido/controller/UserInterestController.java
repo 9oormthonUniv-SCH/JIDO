@@ -30,7 +30,7 @@ public class UserInterestController {
   @Operation(
           description = "사용자의 관심사를 조회합니다."
   )
-  public List<UserInterest> getUserInterests(@PathVariable Long userId) {
+  public List<Category> getUserInterests(@PathVariable Long userId) {
     return userInterestService.getInterestsByUser(userId);
   }
 
