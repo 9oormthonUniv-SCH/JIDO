@@ -41,9 +41,6 @@ public class Step {
     @Column(name = "step_number", nullable = false)
     private Long stepNumber;
 
-    @Column(name = "description", columnDefinition = "TEXT")
-    private String description;
-
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -71,9 +68,8 @@ public class Step {
         this.stepContents.add(content);
     }
 
-    public void update(String title, String description, Long stepNumber) {
+    public void update(String title, Long stepNumber) {
         if (title != null && !title.isBlank()) this.title = title;
-        if (description != null) this.description = description;  // 이 줄 추가
         if (stepNumber != null) this.stepNumber = stepNumber;
     }
 
