@@ -80,7 +80,6 @@ public class Step {
     public static Step fromDto(StepRequestDto dto, RoadmapSection section, Long stepNum) {
         Step step = Step.builder()
                 .title(dto.title())
-                .description(dto.description())
                 .stepNumber(stepNum)
                 .roadmapSection(section)
                 .build();
